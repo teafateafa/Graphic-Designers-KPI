@@ -1,0 +1,339 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  LineChart, BarChart, TrendingUp, Clock, CheckCircle, 
+  Share2, Copy, FileText, Save, Layout, Award, 
+  AlertTriangle, Archive, Trash2, PieChart, Star, Zap
+} from 'lucide-react';
+
+const EliteDesignTracker = () => {
+  const [activeTab, setActiveTab] = useState('input');
+  const [showSaveSuccess, setShowSaveSuccess] = useState(false);
+
+  // State for the current month's data
+  const [currentData, setCurrentData] = useState({
+    id: Date.now(),
+    month: new Date().toLocaleString('ar-EG', { month: 'long' }),
+    year: new Date().getFullYear(),
+    
+    // Detailed Breakdown
+    socialCount: 0,
+    printCount: 0,
+    presentationCount: 0,
+    brandingCount: 0,
+    adCreativeCount: 0, // إعلانات ممولة
+    
+    // Time metrics
+    deliveryHours: 0,
+    deliveryMinutes: 0,
+    
+    // Efficiency
+    rushJobs: 0,
+    avgRevisions: 0,
+    
+    // Professional Impact
+    bestCampaign: '',
+    innovativeIdea: '', // فكرة مبتكرة قدمتها
+    brandEnhancement: '', // كيف طورت في شكل البراند
+    skillsLearned: '',
+  });
+
+  const [history, setHistory] = useState(() => {
+    const saved = localStorage.getItem('eliteDesignHistoryPro');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('eliteDesignHistoryPro', JSON.stringify(history));
+  }, [history]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setCurrentData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const totalDesigns = parseInt(currentData.socialCount) + parseInt(currentData.printCount) + 
+                       parseInt(currentData.presentationCount) + parseInt(currentData.brandingCount) + 
+                       parseInt(currentData.adCreativeCount);
+
+  const calculateScore = (data) => {
+    let score = 0;
+    const totalImpact = (parseInt(data.socialCount) * 1) + (parseInt(data.printCount) * 3) + 
+                        (parseInt(data.brandingCount) * 8) + (parseInt(data.adCreativeCount) * 4);
+    score += Math.min(totalImpact, 45); 
+    
+    const revPenalty = parseInt(data.avgRevisions) * 8;
+    score += Math.max(0, 25 - revPenalty);
+
+    const timeInMinutes = (parseInt(data.deliveryHours) * 60) + parseInt(data.deliveryMinutes);
+    const speedScore = timeInMinutes < 180 ? 20 : (timeInMinutes < 1440 ? 15 : 10);
+    score += speedScore;
+
+    if (data.innovativeIdea) score += 10;
+    return Math.min(Math.round(score), 100);
+  };
+
+  const performanceScore = calculateScore(currentData);
+
+  const saveReport = () => {
+    const newEntry = {
+      ...currentData,
+      score: performanceScore,
+      totalDesigns: totalDesigns,
+      dateSaved: new Date().toISOString()
+    };
+    const existingIndex = history.findIndex(h => h.month === currentData.month && h.year === currentData.year);
+    if (existingIndex >= 0) {
+      const updatedHistory = [...history];
+      updatedHistory[existingIndex] = newEntry;
+      setHistory(updatedHistory);
+    } else {
+      setHistory([...history, newEntry]);
+    }
+    setShowSaveSuccess(true);
+    setTimeout(() => setShowSaveSuccess(false), 3000);
+  };
+
+  const generateEmailText = () => {
+    const timeStr = `${currentData.deliveryHours} ساعة و ${currentData.deliveryMinutes} دقيقة`;
+    return `عناية الدكتور/ محمد شتات - المدير التنفيذي لأكاديمية النخبة الدولية للتدريب والتنمية
+
+تحية طيبة وبعد،،
+
+أتشرف بأن أضع بين أيديكم تقرير الإنجاز البصري والتطوير الفني الخاص بالقسم لشهر ${currentData.month} ${currentData.year}. يوضح هذا التقرير القيمة المضافة لعملية التصميم في تعزيز مكانة الأكاديمية كصرح تدريبي دولي.
+
+أولاً: مؤشرات الإنتاجية والكم (إجمالي مخرجات: ${totalDesigns} عمل فني)
+تم إنجاز وتطوير الملفات التالية وفق أعلى معايير الجودة:
+- التصميمات الإعلانية والتسويقية (Social Media): ${currentData.socialCount} تصميم.
+- الحملات الإعلانية الموجهة (Paid Ads Creatives): ${currentData.adCreativeCount} تصميم.
+- المطبوعات والحقائب التدريبية: ${currentData.printCount} عمل مطبوع.
+- تطوير الهوية البصرية والشعارات: ${currentData.brandingCount} عنصر.
+- العروض التقديمية والملفات التعليمية: ${currentData.presentationCount} ملف احترافي.
+
+ثانياً: الكفاءة التشغيلية والسرعة (Agility & Precision)
+- زمن الاستجابة والتنفيذ: تم تحقيق متوسط زمن تسليم قدره (${timeStr})، مع الحفاظ على دقة التنفيذ من المرة الأولى بمعدل تعديلات لا يتخطى (${currentData.avgRevisions}) لكل تصميم.
+- مهام الطوارئ: التعامل مع (${currentData.rushJobs}) طلب عاجل تم تنفيذها في وقت قياسي لضمان استمرارية العمل دون انقطاع.
+
+ثالثاً: التميز والقيمة المضافة (Strategic Impact)
+- أبرز إنجاز: النجاح في تنفيذ التصميمات الخاصة بـ "${currentData.bestCampaign}".
+- المبادرة والابتكار: ${currentData.innovativeIdea || "العمل على توحيد النمط البصري لجميع إصدارات الأكاديمية لزيادة الموثوقية."}
+- تطوير الهوية: ${currentData.brandEnhancement || "استخدام تقنيات بصرية حديثة تبرز هوية الأكاديمية الدولية."}
+
+إن ما تم تحقيقه يعكس حرصي الدائم على أن يظهر كل عمل يحمل اسم "أكاديمية النخبة الدولية" بشكل احترافي عالمي، مساهماً بذلك في جذب شريحة أكبر من المتدربين وتعزيز الصورة الذهنية للمؤسسة.
+
+تفضلوا بقبول فائق الاحترام والتقدير،،
+[اسمك هنا]
+قسم الجرافيك ديزاين`;
+  };
+
+  return (
+    <div className="min-h-screen bg-[#f8fafc] text-slate-800 font-sans" dir="rtl">
+      {/* Header */}
+      <header className="bg-[#1e293b] text-white p-6 shadow-xl border-b-4 border-blue-500">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="text-right">
+            <h1 className="text-2xl font-bold flex items-center gap-3">
+              <Star className="text-yellow-400 fill-yellow-400 w-7 h-7" />
+              منصة تتبع أداء النخبة
+            </h1>
+            <p className="text-slate-400 text-sm mt-1">أكاديمية النخبة الدولية للتدريب والتنمية</p>
+          </div>
+          <div className="flex gap-6">
+            <div className="bg-white/5 p-3 rounded-lg text-center min-w-[100px]">
+              <div className="text-[10px] text-blue-300 uppercase tracking-wider">تقييم الشهر</div>
+              <div className="text-2xl font-black text-blue-400">{performanceScore}%</div>
+            </div>
+            <div className="bg-white/5 p-3 rounded-lg text-center min-w-[100px]">
+              <div className="text-[10px] text-blue-300 uppercase tracking-wider">الحالة</div>
+              <div className="text-sm font-bold mt-1 text-green-400">احترافي متقدم</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto p-4 md:p-8">
+        
+        {/* Navigation Tabs */}
+        <div className="flex flex-wrap gap-2 mb-8">
+          {[
+            { id: 'input', label: 'إدارة المدخلات', icon: Zap },
+            { id: 'report', label: 'التقرير التنفيذي', icon: FileText },
+            { id: 'history', label: 'سجل التطور السنوي', icon: Archive }
+          ].map(tab => (
+            <button 
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-lg scale-105' : 'bg-white text-slate-600 hover:bg-slate-100'}`}
+            >
+              <tab.icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === 'input' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fadeIn">
+            {/* Column 1: Production Details */}
+            <div className="lg:col-span-2 space-y-6">
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h3 className="text-lg font-bold mb-6 flex items-center gap-2 text-blue-900">
+                  <PieChart className="w-5 h-5" />
+                  تفاصيل المخرجات الفنية
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <InputField label="سوشيال ميديا" name="socialCount" value={currentData.socialCount} onChange={handleInputChange} />
+                  <InputField label="إعلانات ممولة" name="adCreativeCount" value={currentData.adCreativeCount} onChange={handleInputChange} highlight />
+                  <InputField label="مطبوعات" name="printCount" value={currentData.printCount} onChange={handleInputChange} />
+                  <InputField label="عروض تقديمية" name="presentationCount" value={currentData.presentationCount} onChange={handleInputChange} />
+                  <InputField label="هوية بصرية/شعارات" name="brandingCount" value={currentData.brandingCount} onChange={handleInputChange} />
+                  <InputField label="مهام طوارئ" name="rushJobs" value={currentData.rushJobs} onChange={handleInputChange} color="orange" />
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h3 className="text-lg font-bold mb-6 flex items-center gap-2 text-blue-900">
+                  <Star className="w-5 h-5" />
+                  القيمة الاستراتيجية والابتكار
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">فكرة مبتكرة أو مبادرة قدمتها (تفرقك عن غيرك)</label>
+                    <textarea 
+                      name="innovativeIdea" 
+                      value={currentData.innovativeIdea} 
+                      onChange={handleInputChange}
+                      placeholder="مثال: اقترحت تغيير نظام الـ Branding في فيديوهات الكورسات لتكون أكثر عصرية.."
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none h-24"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">أبرز حملة تم إنجازها</label>
+                    <input name="bestCampaign" value={currentData.bestCampaign} onChange={handleInputChange} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Column 2: Performance Metrics */}
+            <div className="space-y-6">
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h3 className="text-lg font-bold mb-6 flex items-center gap-2 text-orange-600">
+                  <Clock className="w-5 h-5" />
+                  مؤشرات السرعة والدقة
+                </h3>
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">متوسط زمن التسليم</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="relative">
+                        <input type="number" name="deliveryHours" value={currentData.deliveryHours} onChange={handleInputChange} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl pr-10" />
+                        <span className="absolute right-3 top-3 text-xs text-slate-400">ساعة</span>
+                      </div>
+                      <div className="relative">
+                        <input type="number" name="deliveryMinutes" value={currentData.deliveryMinutes} onChange={handleInputChange} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl pr-10" />
+                        <span className="absolute right-3 top-3 text-xs text-slate-400">دقيقة</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">متوسط عدد التعديلات/تصميم</label>
+                    <input type="number" name="avgRevisions" value={currentData.avgRevisions} onChange={handleInputChange} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-blue-900 text-white p-6 rounded-2xl shadow-xl">
+                <h4 className="font-bold mb-2">لماذا هذا النظام؟</h4>
+                <p className="text-blue-200 text-xs leading-relaxed">
+                  هذا النظام يحول مجهودك الفني إلى لغة أرقام يفهمها دكتور محمد شتات، مما يسهل عملية اتخاذ قرار بزيادة الراتب بناءً على حقائق مثبتة.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'report' && (
+          <div className="max-w-4xl mx-auto animate-fadeIn">
+            <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
+              <div className="bg-[#1e293b] text-white p-6 flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center font-bold">EN</div>
+                  <div>
+                    <h3 className="font-bold">التقرير التنفيذي الموجه</h3>
+                    <p className="text-[10px] text-slate-400">أكاديمية النخبة الدولية - د. محمد شتات</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={saveReport} className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"><Save size={18} /></button>
+                  <button onClick={() => {navigator.clipboard.writeText(generateEmailText()); alert('تم النسخ!')}} className="p-2 bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors"><Copy size={18} /></button>
+                </div>
+              </div>
+              <div className="p-10 bg-white text-slate-800 leading-[2] whitespace-pre-line font-medium text-right border-r-8 border-blue-600">
+                {generateEmailText()}
+              </div>
+            </div>
+            {showSaveSuccess && <p className="text-center mt-4 text-green-600 font-bold">تم حفظ التقرير في الأرشيف بنجاح</p>}
+          </div>
+        )}
+
+        {activeTab === 'history' && (
+          <div className="animate-fadeIn">
+            <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+              <h3 className="text-xl font-bold mb-8 flex items-center gap-2">
+                <Archive className="text-blue-600" />
+                تتبع مسار الأداء السنوي
+              </h3>
+              {history.length === 0 ? (
+                <div className="text-center py-20 text-slate-300">لا توجد بيانات محفوظة للشهور السابقة.</div>
+              ) : (
+                <div className="space-y-4">
+                  {history.map((record, i) => (
+                    <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl hover:bg-slate-100 transition-colors">
+                      <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 bg-white rounded-xl shadow-sm flex flex-col items-center justify-center border border-slate-200">
+                          <span className="text-xs text-slate-400">{record.year}</span>
+                          <span className="font-bold text-blue-900">{record.month}</span>
+                        </div>
+                        <div>
+                          <div className="font-bold text-slate-700">{record.totalDesigns} تصميم</div>
+                          <div className="text-xs text-slate-400">أداء: {record.score}%</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className={`h-2 w-32 bg-slate-200 rounded-full overflow-hidden`}>
+                          <div className="h-full bg-blue-600" style={{width: `${record.score}%`}}></div>
+                        </div>
+                        <button onClick={() => {
+                          const updated = history.filter((_, idx) => idx !== i);
+                          setHistory(updated);
+                        }} className="text-red-300 hover:text-red-600 p-2"><Trash2 size={16}/></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+};
+
+// Sub-component for inputs
+const InputField = ({ label, name, value, onChange, highlight, color = "blue" }) => (
+  <div className={`p-4 rounded-xl ${highlight ? 'bg-blue-50 border border-blue-200' : 'bg-slate-50 border border-slate-100'}`}>
+    <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">{label}</label>
+    <input 
+      type="number" 
+      name={name} 
+      value={value} 
+      onChange={onChange}
+      className="w-full bg-transparent text-xl font-bold outline-none focus:text-blue-600 transition-colors"
+    />
+  </div>
+);
+
+export default EliteDesignTracker;
