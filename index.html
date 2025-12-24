@@ -3,339 +3,647 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mahmoud Yousry | Elite Design Tracker</title>
+    <title>Mahmoud Yousry | Elite Design Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Cairo', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 900: '#0c4a6e'
+                        },
+                        slate: { 850: '#1e293b' } 
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                        'glow': '0 0 15px rgba(14, 165, 233, 0.3)'
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body { font-family: 'Cairo', sans-serif; }
-        .tab-active { background: white; color: #2563eb; shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
-        .animate-pulse-slow { animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .7; } }
+        body { background-color: #f8fafc; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.5s ease-in-out;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        .input-card:focus-within {
+            transform: translateY(-2px);
+            border-color: #0ea5e9;
+            box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.15);
+        }
+        .tab-btn.active {
+            background-color: #0f172a;
+            color: white;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        @media print {
+            body * { visibility: hidden; }
+            #printable-report, #printable-report * { visibility: visible; }
+            #printable-report { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; box-shadow: none; border: none; }
+        }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen">
+<body class="text-slate-800 antialiased selection:bg-brand-100 selection:text-brand-900 pb-12">
 
     <!-- Header -->
-    <header class="bg-white border-b border-slate-200 p-6 sticky top-0 z-50 shadow-sm">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm bg-opacity-90 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <div class="bg-slate-900 p-3 rounded-2xl shadow-lg shadow-slate-200 text-white">
-                    <i data-lucide="palette"></i>
+                <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-lg shadow-brand-500/20">
+                    <i data-lucide="pen-tool" class="w-5 h-5"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-black tracking-tight text-slate-800 flex flex-col sm:flex-row sm:items-baseline gap-2">
-                        Mahmoud Yousry 
-                        <span class="text-blue-600 font-medium text-sm sm:text-lg tracking-normal">| Senior Graphic Designer</span>
-                    </h1>
-                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">أكاديمية النخبة الدولية للتدريب والتنمية</p>
+                    <h1 class="text-lg font-black text-slate-900 leading-tight">Mahmoud Yousry</h1>
+                    <p class="text-[10px] font-bold text-slate-500 tracking-wider uppercase">Senior Graphic Designer</p>
                 </div>
             </div>
-
-            <div class="flex items-center gap-4">
-                <div id="badge-container" class="px-4 py-2 rounded-xl border-2 border-white shadow-sm flex items-center gap-2 bg-slate-500 text-white text-xs font-bold animate-pulse-slow">
-                    <i data-lucide="trending-up" class="w-4 h-4"></i>
-                    <span id="badge-text">بداية قوية</span>
+            
+            <div class="flex items-center gap-3">
+                <div class="hidden md:flex flex-col items-end mr-2">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Performance</span>
+                    <span id="header-badge" class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">Excellent</span>
                 </div>
-                <div class="h-10 w-[1px] bg-slate-200 mx-2 hidden md:block"></div>
-                <div class="text-left">
-                    <div class="text-[10px] text-slate-400 font-bold uppercase">KPI Score</div>
-                    <div id="score-display" class="text-xl font-black text-blue-600">0%</div>
+                <div class="h-8 w-[1px] bg-slate-200 hidden md:block"></div>
+                 <div class="bg-slate-100 p-1 rounded-lg flex items-center">
+                    <button onclick="switchTab('input')" id="tab-input" class="tab-btn active px-4 py-1.5 rounded-md text-xs font-bold transition-all duration-300">البيانات</button>
+                    <button onclick="switchTab('report')" id="tab-report" class="tab-btn px-4 py-1.5 rounded-md text-xs font-bold transition-all duration-300 text-slate-500 hover:text-slate-900">التقرير</button>
+                    <button onclick="switchTab('history')" id="tab-history" class="tab-btn px-4 py-1.5 rounded-md text-xs font-bold transition-all duration-300 text-slate-500 hover:text-slate-900">الأرشيف</button>
                 </div>
             </div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto p-4 md:p-8">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         
-        <!-- Tabs Navigation -->
-        <div class="inline-flex p-1 bg-slate-200/50 rounded-2xl mb-8">
-            <button onclick="switchTab('input')" id="tab-input" class="tab-btn px-8 py-2.5 rounded-xl text-sm font-bold transition-all tab-active">البيانات</button>
-            <button onclick="switchTab('report')" id="tab-report" class="tab-btn px-8 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-500">التقرير</button>
-            <button onclick="switchTab('history')" id="tab-history" class="tab-btn px-8 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-500">الأرشيف</button>
-        </div>
+        <!-- DASHBOARD VIEW -->
+        <div id="content-input" class="tab-content transition-opacity duration-300">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <!-- Left Column: Inputs -->
+                <div class="lg:col-span-8 space-y-6">
+                    
+                    <!-- Period Selection -->
+                    <div class="bg-white rounded-2xl p-4 shadow-soft border border-slate-100 flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-brand-50 p-2 rounded-lg text-brand-600"><i data-lucide="calendar-days" class="w-5 h-5"></i></div>
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-700">فترة التقييم</h3>
+                                <p class="text-[10px] text-slate-400">حدد الشهر والسنة للتقرير الحالي</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <select id="month" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all cursor-pointer hover:bg-white"></select>
+                            <select id="year" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all cursor-pointer hover:bg-white"></select>
+                        </div>
+                    </div>
 
-        <!-- Section: Input -->
-        <div id="content-input" class="tab-content grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div class="lg:col-span-8 space-y-6">
-                <!-- Period Selector -->
-                <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-wrap gap-4 items-center">
-                    <div class="flex items-center gap-2 text-slate-500 font-bold text-sm">
-                        <i data-lucide="calendar" class="w-5 h-5"></i>
-                        <span>فترة التقرير:</span>
-                    </div>
-                    <select id="month" class="bg-slate-50 border-none rounded-lg p-2 font-bold text-blue-900 focus:ring-2 focus:ring-blue-100 outline-none"></select>
-                    <select id="year" class="bg-slate-50 border-none rounded-lg p-2 font-bold text-blue-900 focus:ring-2 focus:ring-blue-100 outline-none"></select>
-                </div>
+                    <!-- Production Grid -->
+                    <section class="bg-white rounded-3xl p-6 md:p-8 shadow-soft border border-slate-100">
+                        <div class="flex items-center justify-between mb-8">
+                            <div>
+                                <h2 class="text-lg font-black text-slate-800 flex items-center gap-2">
+                                    <i data-lucide="layers" class="text-brand-600 w-5 h-5"></i>
+                                    حجم الإنتاج الفني
+                                </h2>
+                                <p class="text-xs text-slate-400 mt-1 font-medium">أدخل عدد التصاميم المنجزة لكل فئة</p>
+                            </div>
+                            <div class="hidden sm:flex text-[10px] font-bold bg-slate-100 px-3 py-1 rounded-full text-slate-500">
+                                يتم التحديث تلقائياً
+                            </div>
+                        </div>
 
-                <section class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
-                    <div class="flex items-center gap-2 mb-8">
-                        <i data-lucide="pie-chart" class="text-blue-600"></i>
-                        <h2 class="font-black text-slate-800">حجم الإنتاج الفني</h2>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="input-group" data-label="سوشيال ميديا" data-name="socialCount" data-icon="layout"></div>
-                        <div class="input-group" data-label="إعلانات ممولة" data-name="adCreativeCount" data-icon="target" data-theme="blue"></div>
-                        <div class="input-group" data-label="مطبوعات" data-name="printCount" data-icon="file-text"></div>
-                        <div class="input-group" data-label="عروض تقدمية" data-name="presentationCount" data-icon="award"></div>
-                        <div class="input-group" data-label="هوية بصرية" data-name="brandingCount" data-icon="star"></div>
-                        <div class="input-group" data-label="طلبات عاجلة" data-name="rushJobs" data-icon="zap" data-theme="orange"></div>
-                    </div>
-                </section>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                            <!-- Input Cards rendered via JS -->
+                            <div id="production-inputs-container" class="contents"></div>
+                        </div>
+                    </section>
 
-                <section class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
-                    <div class="flex items-center gap-2 mb-6">
-                        <i data-lucide="lightbulb" class="text-yellow-500"></i>
-                        <h2 class="font-black text-slate-800">الابتكار والتطوير الإبداعي</h2>
-                    </div>
+                    <!-- Quality & Innovation -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-black text-slate-400 uppercase">أبرز حملة تم إنجازها</label>
-                            <input type="text" id="bestCampaign" placeholder="مثال: حملة دبلوم الموارد البشرية" class="w-full bg-slate-50 border-2 border-transparent focus:border-blue-100 focus:bg-white p-4 rounded-2xl outline-none transition-all font-bold text-slate-700">
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-black text-slate-400 uppercase">فكرة إبداعية جديدة</label>
-                            <input type="text" id="innovativeIdea" placeholder="تطوير موشن جرافيك أو نظام ألوان جديد" class="w-full bg-slate-50 border-2 border-transparent focus:border-blue-100 focus:bg-white p-4 rounded-2xl outline-none transition-all font-bold text-slate-700">
-                        </div>
-                    </div>
-                </section>
-            </div>
+                        <!-- Time Efficiency -->
+                        <section class="bg-white rounded-3xl p-6 shadow-soft border border-slate-100">
+                            <div class="flex items-center gap-2 mb-6">
+                                <div class="p-2 bg-purple-50 rounded-lg text-purple-600"><i data-lucide="clock" class="w-5 h-5"></i></div>
+                                <h2 class="font-bold text-slate-800 text-sm">الكفاءة الزمنية</h2>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <div class="flex gap-3">
+                                    <div class="flex-1">
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">ساعات</label>
+                                        <input type="number" id="deliveryHours" value="0" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-center font-bold text-slate-700 focus:ring-2 focus:ring-purple-500 focus:bg-white outline-none transition-all">
+                                    </div>
+                                    <div class="flex-1">
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">دقائق</label>
+                                        <input type="number" id="deliveryMinutes" value="0" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-center font-bold text-slate-700 focus:ring-2 focus:ring-purple-500 focus:bg-white outline-none transition-all">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block flex justify-between">
+                                        <span>معدل التعديلات (Revisions)</span>
+                                        <span class="text-red-400 text-[9px] bg-red-50 px-1.5 rounded">يؤثر سلباً</span>
+                                    </label>
+                                    <div class="relative">
+                                        <input type="number" id="avgRevisions" value="0" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 pl-10 font-bold text-slate-700 focus:ring-2 focus:ring-red-200 focus:border-red-300 focus:bg-white outline-none transition-all">
+                                        <i data-lucide="alert-circle" class="absolute left-3 top-3.5 w-4 h-4 text-slate-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
 
-            <!-- Side Analytics -->
-            <div class="lg:col-span-4 space-y-6">
-                <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
-                    <h3 class="font-black mb-6 flex items-center gap-2"><i data-lucide="clock" class="w-5 h-5"></i> الكفاءة الزمنية والدقة</h3>
-                    <div class="space-y-6">
-                        <div class="flex gap-4">
-                            <div class="flex-1">
-                                <label class="text-[10px] font-bold text-slate-400 block mb-2 uppercase">ساعات</label>
-                                <input type="number" id="deliveryHours" value="0" class="w-full bg-slate-50 p-3 rounded-xl font-bold outline-none border-2 border-transparent focus:border-blue-200 text-center">
+                        <!-- Innovation -->
+                        <section class="bg-white rounded-3xl p-6 shadow-soft border border-slate-100">
+                            <div class="flex items-center gap-2 mb-6">
+                                <div class="p-2 bg-yellow-50 rounded-lg text-yellow-600"><i data-lucide="lightbulb" class="w-5 h-5"></i></div>
+                                <h2 class="font-bold text-slate-800 text-sm">الابتكار والإبداع</h2>
                             </div>
-                            <div class="flex-1">
-                                <label class="text-[10px] font-bold text-slate-400 block mb-2 uppercase">دقائق</label>
-                                <input type="number" id="deliveryMinutes" value="0" class="w-full bg-slate-50 p-3 rounded-xl font-bold outline-none border-2 border-transparent focus:border-blue-200 text-center">
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">أبرز حملة / مشروع</label>
+                                    <input type="text" id="bestCampaign" placeholder="اسم الحملة الأقوى..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-semibold text-slate-700 focus:ring-2 focus:ring-yellow-200 focus:border-yellow-300 focus:bg-white outline-none transition-all text-sm placeholder:text-slate-300">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">فكرة إبداعية جديدة</label>
+                                    <input type="text" id="innovativeIdea" placeholder="مبادرة أو أسلوب جديد..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-semibold text-slate-700 focus:ring-2 focus:ring-yellow-200 focus:border-yellow-300 focus:bg-white outline-none transition-all text-sm placeholder:text-slate-300">
+                                </div>
                             </div>
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-400 block mb-2 uppercase">معدل التعديلات (Revisions)</label>
-                            <input type="number" id="avgRevisions" value="0" class="w-full bg-slate-50 p-3 rounded-xl font-bold outline-none border-2 border-transparent focus:border-blue-200">
-                        </div>
+                        </section>
                     </div>
                 </div>
-                <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
-                    <h4 class="font-black text-lg mb-2 relative z-10">نظام تقييم النخبة</h4>
-                    <p class="text-slate-300 text-xs leading-relaxed relative z-10 font-medium">هذا النظام يحلل التوازن بين الكم والكيف. حصولك على تقييم عالٍ يعني أنك تساهم مباشرة في الهوية البصرية للأكاديمية.</p>
+
+                <!-- Right Column: Analytics & Sticky Summary -->
+                <div class="lg:col-span-4 space-y-6">
+                    
+                    <!-- KPI Card -->
+                    <div class="bg-slate-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl shadow-slate-900/20">
+                        <div class="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 pointer-events-none"></div>
+                        <div class="absolute -top-10 -right-10 w-32 h-32 bg-brand-500 rounded-full blur-[60px] opacity-30"></div>
+                        
+                        <div class="relative z-10 flex flex-col items-center">
+                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-6">مؤشر الأداء الكلي</h3>
+                            
+                            <!-- Circular Progress -->
+                            <div class="relative w-40 h-40 mb-6">
+                                <svg class="w-full h-full" viewBox="0 0 100 100">
+                                    <circle class="text-slate-800 stroke-current" stroke-width="8" cx="50" cy="50" r="40" fill="transparent"></circle>
+                                    <circle id="score-circle" class="text-brand-500 progress-ring__circle stroke-current" stroke-width="8" stroke-linecap="round" cx="50" cy="50" r="40" fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="251.2"></circle>
+                                </svg>
+                                <div class="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center">
+                                    <span id="score-text" class="text-4xl font-black tracking-tighter">0%</span>
+                                </div>
+                            </div>
+
+                            <div id="badge-display" class="bg-white/10 backdrop-blur-sm border border-white/10 px-4 py-2 rounded-full flex items-center gap-2">
+                                <i data-lucide="award" class="w-4 h-4 text-brand-400"></i>
+                                <span class="text-xs font-bold" id="badge-label">جاري التحليل...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Stats Distribution -->
+                    <div class="bg-white rounded-3xl p-6 shadow-soft border border-slate-100">
+                        <h3 class="font-bold text-slate-800 text-sm mb-6 flex items-center gap-2">
+                            <i data-lucide="bar-chart-3" class="w-4 h-4 text-slate-400"></i>
+                            توزيع المهام
+                        </h3>
+                        <div id="stats-bars" class="space-y-4">
+                            <!-- Bars populated by JS -->
+                        </div>
+                        <div class="mt-6 pt-6 border-t border-slate-100 grid grid-cols-2 gap-4">
+                            <div class="text-center">
+                                <div class="text-[10px] text-slate-400 font-bold uppercase">إجمالي الأعمال</div>
+                                <div id="total-works" class="text-xl font-black text-slate-800">0</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-[10px] text-slate-400 font-bold uppercase">تقييم الجودة</div>
+                                <div id="quality-score" class="text-xl font-black text-emerald-600">--</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="switchTab('report')" class="w-full bg-slate-900 hover:bg-slate-800 text-white p-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl active:scale-95">
+                        <span>إصدار التقرير النهائي</span>
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    </button>
+
                 </div>
             </div>
         </div>
 
-        <!-- Section: Report -->
-        <div id="content-report" class="tab-content hidden max-w-4xl mx-auto">
-            <div class="bg-white rounded-[2rem] shadow-2xl border border-slate-200 overflow-hidden">
-                <div class="bg-slate-900 p-8 text-white flex justify-between items-center">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center font-black text-xl">M</div>
-                        <div>
-                            <h3 class="font-black">تقرير الأداء التنفيذي</h3>
-                            <p class="text-xs text-slate-400">إعداد: محمود يسري</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-3">
-                        <button onclick="saveToArchive()" class="bg-white/10 hover:bg-white/20 p-3 rounded-xl transition-all"><i data-lucide="save"></i></button>
-                        <button onclick="copyReport()" class="bg-blue-600 hover:bg-blue-500 p-3 rounded-xl transition-all"><i data-lucide="copy"></i></button>
+        <!-- REPORT VIEW -->
+        <div id="content-report" class="tab-content hidden transition-opacity duration-300">
+            <div class="max-w-4xl mx-auto">
+                <!-- Toolbar -->
+                <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 class="font-bold text-slate-700 flex items-center gap-2">
+                        <i data-lucide="file-text" class="text-brand-600"></i>
+                        معاينة التقرير
+                    </h3>
+                    <div class="flex gap-2">
+                        <button onclick="window.print()" class="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors">
+                            <i data-lucide="printer" class="w-4 h-4"></i> طباعة / PDF
+                        </button>
+                        <button onclick="saveToArchive()" class="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-bold transition-colors shadow-lg shadow-brand-500/20">
+                            <i data-lucide="save" class="w-4 h-4"></i> حفظ في الأرشيف
+                        </button>
                     </div>
                 </div>
-                <div id="report-text" class="p-12 text-slate-700 leading-[2.2] text-lg font-medium whitespace-pre-line border-r-[12px] border-blue-600 bg-slate-50">
-                    جاري توليد التقرير...
+
+                <!-- A4 Paper Effect -->
+                <div id="printable-report" class="bg-white text-slate-900 p-[10mm] md:p-[15mm] shadow-2xl rounded-sm mx-auto min-h-[297mm] relative leading-relaxed">
+                    
+                    <!-- Letterhead -->
+                    <div class="flex justify-between items-end border-b-2 border-slate-900 pb-6 mb-12">
+                        <div>
+                            <h1 class="text-3xl font-black tracking-tight text-slate-900">Mahmoud Yousry</h1>
+                            <p class="text-sm font-bold text-slate-500 uppercase tracking-widest mt-1">Senior Graphic Designer</p>
+                        </div>
+                        <div class="text-left">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase">Document Ref</div>
+                            <div class="font-mono text-sm font-bold text-slate-800" id="report-ref">KPI-2024-001</div>
+                        </div>
+                    </div>
+
+                    <!-- Report Content -->
+                    <div class="space-y-8">
+                        <div>
+                            <div class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">To The Attention Of</div>
+                            <div class="text-lg font-bold text-slate-900">د. محمد شتات</div>
+                            <div class="text-sm text-slate-600">المدير التنفيذي - أكاديمية النخبة الدولية للتدريب والتنمية</div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-8 py-8 border-y border-slate-100">
+                            <div>
+                                <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Date</span>
+                                <span id="report-date" class="font-bold text-slate-800 text-lg">--</span>
+                            </div>
+                            <div>
+                                <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Performance Score</span>
+                                <span id="report-score" class="font-black text-brand-600 text-2xl">--</span>
+                            </div>
+                        </div>
+
+                        <div class="prose max-w-none text-slate-700">
+                            <h3 class="text-lg font-black text-slate-900 mb-4 flex items-center gap-2">
+                                <span class="w-2 h-2 bg-brand-500 rounded-full"></span>
+                                ملخص الإنجاز الشهري
+                            </h3>
+                            <p class="mb-6">
+                                بناءً على مؤشرات الأداء للشهر الحالي، يسرني تقديم تقرير الكفاءة والإنتاجية لقسم التصميم الجرافيكي. تم التركيز خلال هذه الفترة على <span id="report-focus" class="font-bold text-slate-900">رفع جودة المخرجات البصرية</span> مع الالتزام بالهوية المؤسسية للأكاديمية.
+                            </p>
+
+                            <div class="grid grid-cols-2 gap-4 mb-8">
+                                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                    <div class="text-xs font-bold text-slate-500 mb-2">إحصائيات الإنتاج</div>
+                                    <ul id="report-stats-list" class="space-y-2 text-sm font-semibold"></ul>
+                                </div>
+                                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                    <div class="text-xs font-bold text-slate-500 mb-2">معايير الجودة</div>
+                                    <ul id="report-quality-list" class="space-y-2 text-sm font-semibold"></ul>
+                                </div>
+                            </div>
+
+                            <h3 class="text-lg font-black text-slate-900 mb-4 flex items-center gap-2">
+                                <span class="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                                الإنجازات الاستراتيجية
+                            </h3>
+                            <div class="pl-4 border-r-2 border-slate-200 mr-1">
+                                <p class="mb-2"><strong class="text-slate-900">الحملة الأبرز:</strong> <span id="report-best-campaign">--</span></p>
+                                <p><strong class="text-slate-900">مبادرات التطوير:</strong> <span id="report-idea">--</span></p>
+                            </div>
+                        </div>
+
+                        <div class="mt-20 pt-8 border-t-2 border-slate-900 flex justify-between items-center">
+                            <div>
+                                <div class="font-black text-slate-900 text-lg">Mahmoud Yousry</div>
+                                <div class="text-xs font-bold text-slate-400 uppercase">Signature</div>
+                            </div>
+                            <div class="opacity-50 grayscale">
+                                <img src="https://ui-avatars.com/api/?name=Mahmoud+Yousry&background=0f172a&color=fff&bold=true" class="w-12 h-12 rounded-full" alt="Signature Placeholder">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Footer -->
+                    <div class="absolute bottom-8 right-0 left-0 text-center">
+                        <p class="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Elite International Academy - Internal Design KPI Report</p>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Section: History -->
-        <div id="content-history" class="tab-content hidden bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
-            <div class="flex items-center gap-2 mb-8">
-                <i data-lucide="archive" class="text-blue-600"></i>
-                <h3 class="font-black text-xl text-slate-800">الأرشيف السنوي للإنجازات</h3>
-            </div>
-            <div id="history-list" class="space-y-4">
-                <div class="py-20 text-center text-slate-300 font-bold">لا توجد سجلات محفوظة حالياً.</div>
+        <!-- HISTORY VIEW -->
+        <div id="content-history" class="tab-content hidden max-w-5xl mx-auto">
+            <div class="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm min-h-[400px]">
+                <div class="flex items-center justify-between mb-8">
+                    <div class="flex items-center gap-3">
+                        <div class="p-3 bg-brand-50 text-brand-600 rounded-xl"><i data-lucide="archive" class="w-6 h-6"></i></div>
+                        <div>
+                            <h3 class="font-black text-xl text-slate-800">أرشيف الإنجازات</h3>
+                            <p class="text-xs text-slate-400 font-bold mt-1">سجل التقييمات الشهرية السابقة</p>
+                        </div>
+                    </div>
+                    <button onclick="exportHistoryCSV()" class="text-xs font-bold text-slate-500 hover:text-brand-600 flex items-center gap-2 transition-colors">
+                        <i data-lucide="download"></i> تصدير البيانات (CSV)
+                    </button>
+                </div>
+                
+                <div id="history-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="col-span-full py-20 text-center">
+                        <div class="inline-block p-4 rounded-full bg-slate-50 mb-4"><i data-lucide="inbox" class="w-8 h-8 text-slate-300"></i></div>
+                        <div class="text-slate-400 font-bold text-sm">لا توجد سجلات محفوظة حتى الآن</div>
+                    </div>
+                </div>
             </div>
         </div>
 
     </main>
 
-    <footer class="max-w-7xl mx-auto p-8 text-center text-slate-400 text-xs font-bold uppercase tracking-widest">
-        © <span id="footer-year"></span> Mahmoud Yousry Design Portfolio System
-    </footer>
-
     <script>
-        // --- DATA & STATE ---
+        // --- CONFIGURATION ---
+        const inputsConfig = [
+            { id: 'socialCount', label: 'سوشيال ميديا', icon: 'instagram', weight: 1, color: 'text-pink-500', bg: 'bg-pink-50' },
+            { id: 'adCreativeCount', label: 'إعلانات ممولة', icon: 'target', weight: 4, color: 'text-blue-500', bg: 'bg-blue-50' },
+            { id: 'printCount', label: 'مطبوعات', icon: 'printer', weight: 3, color: 'text-cyan-500', bg: 'bg-cyan-50' },
+            { id: 'presentationCount', label: 'عروض تقديمية', icon: 'monitor-play', weight: 2, color: 'text-orange-500', bg: 'bg-orange-50' },
+            { id: 'brandingCount', label: 'هوية بصرية', icon: 'fingerprint', weight: 8, color: 'text-violet-500', bg: 'bg-violet-50' },
+            { id: 'rushJobs', label: 'طلبات عاجلة', icon: 'zap', weight: 0, color: 'text-yellow-500', bg: 'bg-yellow-50', isNegative: false } // Rush jobs tracked but handled differently in score
+        ];
+
         const state = {
             socialCount: 0, adCreativeCount: 0, printCount: 0, 
             presentationCount: 0, brandingCount: 0, rushJobs: 0,
             deliveryHours: 0, deliveryMinutes: 0, avgRevisions: 0,
-            month: '', year: 2024, bestCampaign: '', innovativeIdea: ''
+            month: '', year: new Date().getFullYear(), bestCampaign: '', innovativeIdea: ''
         };
 
-        const months = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
         let history = JSON.parse(localStorage.getItem('eliteHistory')) || [];
 
-        // --- INIT ---
+        // --- INITIALIZATION ---
         window.onload = () => {
-            document.getElementById('footer-year').innerText = new Date().getFullYear();
             initSelectors();
-            renderInputs();
-            updateDashboard();
+            renderInputCards();
             lucide.createIcons();
-            
-            // Listen for changes
+            updateDashboard();
+
+            // Bind Events
             document.querySelectorAll('input, select').forEach(el => {
                 el.addEventListener('input', (e) => {
-                    state[e.target.id] = e.target.value;
+                    const val = e.target.type === 'number' ? (parseInt(e.target.value) || 0) : e.target.value;
+                    state[e.target.id] = val;
                     updateDashboard();
                 });
             });
         };
 
         function initSelectors() {
+            const months = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
             const mSel = document.getElementById('month');
             const ySel = document.getElementById('year');
-            const curMonth = months[new Date().getMonth()];
-            const curYear = new Date().getFullYear();
+            const d = new Date();
 
-            months.forEach(m => {
+            months.forEach((m, i) => {
                 const opt = new Option(m, m);
-                if(m === curMonth) opt.selected = true;
+                if(i === d.getMonth()) opt.selected = true;
                 mSel.add(opt);
             });
-            [2024, 2025, 2026].forEach(y => {
+            
+            for(let y = 2024; y <= 2026; y++) {
                 const opt = new Option(y, y);
-                if(y === curYear) opt.selected = true;
+                if(y === d.getFullYear()) opt.selected = true;
                 ySel.add(opt);
-            });
-
+            }
+            
             state.month = mSel.value;
             state.year = ySel.value;
         }
 
-        function renderInputs() {
-            document.querySelectorAll('.input-group').forEach(div => {
-                const label = div.dataset.label;
-                const name = div.dataset.name;
-                const icon = div.dataset.icon;
-                const theme = div.dataset.theme || 'slate';
-                
-                div.innerHTML = `
-                    <label class="text-[10px] font-black text-slate-400 mb-2 block uppercase tracking-tighter">${label}</label>
-                    <div class="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border-2 border-transparent transition-all focus-within:bg-white focus-within:border-blue-100 shadow-sm focus-within:shadow-md">
-                        <i data-lucide="${icon}" class="w-5 h-5 ${theme === 'orange' ? 'text-orange-400' : 'text-slate-400'}"></i>
-                        <input type="number" id="${name}" value="0" min="0" class="bg-transparent w-full outline-none font-black text-slate-700 text-lg">
+        function renderInputCards() {
+            const container = document.getElementById('production-inputs-container');
+            container.innerHTML = inputsConfig.map(item => `
+                <div class="input-card group bg-slate-50 border border-slate-200 p-4 rounded-2xl transition-all duration-300 hover:bg-white hover:shadow-md relative overflow-hidden">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="${item.bg} ${item.color} p-2 rounded-lg transition-colors group-hover:scale-110 duration-300">
+                            <i data-lucide="${item.icon}" class="w-5 h-5"></i>
+                        </div>
+                        <div class="flex flex-col items-end">
+                            <input type="number" id="${item.id}" value="0" min="0" 
+                                class="w-16 text-right bg-transparent font-black text-2xl text-slate-800 outline-none focus:text-brand-600 transition-colors"
+                                onfocus="this.select()">
+                        </div>
                     </div>
-                `;
-            });
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wide group-hover:text-slate-800 transition-colors">${item.label}</label>
+                    <div class="absolute bottom-0 right-0 h-1 bg-slate-200 w-full opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div class="h-full ${item.color.replace('text', 'bg')} w-0 group-hover:w-full transition-all duration-1000"></div>
+                    </div>
+                </div>
+            `).join('');
         }
 
+        // --- CORE LOGIC ---
         function updateDashboard() {
-            const score = calculateScore();
-            document.getElementById('score-display').innerText = score + '%';
-            updateBadge(score);
-            generateReportText();
-            renderHistory();
+            const calc = calculateScore();
+            
+            // Update Circle Gauge
+            const circle = document.getElementById('score-circle');
+            const radius = circle.r.baseVal.value;
+            const circumference = radius * 2 * Math.PI;
+            const offset = circumference - (calc.score / 100) * circumference;
+            
+            circle.style.strokeDashoffset = offset;
+            // Color based on score
+            if(calc.score < 50) circle.classList.replace('text-brand-500', 'text-red-500');
+            else if(calc.score < 80) {
+                circle.classList.replace('text-red-500', 'text-brand-500');
+                circle.classList.replace('text-emerald-500', 'text-brand-500');
+            }
+            else circle.classList.replace('text-brand-500', 'text-emerald-500');
+
+            // Animate number
+            document.getElementById('score-text').innerText = calc.score + '%';
+            
+            // Badge Logic
+            const badgeLabel = document.getElementById('badge-label');
+            const badgeHeader = document.getElementById('header-badge');
+            let badgeText = "Good Start";
+            let colorClass = "text-slate-500";
+            
+            if (state.rushJobs > 5) { badgeText = "Crisis Hero"; colorClass = "text-orange-500"; }
+            else if (calc.score >= 95) { badgeText = "Elite Master"; colorClass = "text-emerald-400"; }
+            else if (calc.score >= 85) { badgeText = "Pro Designer"; colorClass = "text-brand-400"; }
+            else if (calc.score >= 70) { badgeText = "Active"; colorClass = "text-blue-300"; }
+            
+            badgeLabel.innerText = badgeText;
+            badgeHeader.innerText = badgeText;
+            
+            // Update Stats Bars
+            updateStatsBars(calc.totalWorks);
+            document.getElementById('total-works').innerText = calc.totalWorks;
+            document.getElementById('quality-score').innerText = calc.qualityScore > 0 ? '+' + calc.qualityScore : calc.qualityScore;
+
+            // Prepare Report Data
+            updateReportPreview(calc);
         }
 
         function calculateScore() {
-            let score = 0;
-            const totalImpact = (parseInt(state.socialCount || 0) * 1) + 
-                               (parseInt(state.printCount || 0) * 3) + 
-                               (parseInt(state.brandingCount || 0) * 8) + 
-                               (parseInt(state.adCreativeCount || 0) * 4);
-            score += Math.min(totalImpact, 45); 
+            let volumeScore = 0;
+            let totalWorks = 0;
             
-            const revPenalty = parseInt(state.avgRevisions || 0) * 8;
-            score += Math.max(0, 25 - revPenalty);
+            // Calculate Volume based on weights
+            inputsConfig.forEach(item => {
+                if(item.id !== 'rushJobs') {
+                    const count = parseInt(state[item.id]) || 0;
+                    volumeScore += count * item.weight;
+                    totalWorks += count;
+                }
+            });
 
-            const timeMin = (parseInt(state.deliveryHours || 0) * 60) + parseInt(state.deliveryMinutes || 0);
-            if (timeMin > 0) {
-                score += timeMin < 180 ? 20 : (timeMin < 1440 ? 15 : 10);
-            } else { score += 10; }
-
-            if (state.innovativeIdea) score += 10;
-            return Math.min(Math.round(score), 100);
-        }
-
-        function updateBadge(score) {
-            const badgeCont = document.getElementById('badge-container');
-            const badgeText = document.getElementById('badge-text');
+            // Cap volume score at 45 points
+            volumeScore = Math.min(volumeScore, 45);
             
-            if (parseInt(state.rushJobs) > 5) {
-                badgeText.innerText = 'منقذ الأزمات';
-                badgeCont.className = 'px-4 py-2 rounded-xl border-2 border-white shadow-sm flex items-center gap-2 bg-orange-500 text-white text-xs font-bold animate-pulse-slow';
-            } else if (score >= 90) {
-                badgeText.innerText = 'خبير النخبة';
-                badgeCont.className = 'px-4 py-2 rounded-xl border-2 border-white shadow-sm flex items-center gap-2 bg-yellow-500 text-black text-xs font-bold animate-pulse-slow';
-            } else {
-                badgeText.innerText = 'مصمم محترف';
-                badgeCont.className = 'px-4 py-2 rounded-xl border-2 border-white shadow-sm flex items-center gap-2 bg-blue-600 text-white text-xs font-bold animate-pulse-slow';
+            // Quality (Revisions) - Max 25 points
+            const revPenalty = (parseInt(state.avgRevisions) || 0) * 8;
+            const revisionScore = Math.max(0, 25 - revPenalty);
+
+            // Time Efficiency - Max 20 points
+            const totalMin = ((parseInt(state.deliveryHours)||0) * 60) + (parseInt(state.deliveryMinutes)||0);
+            let timeScore = 10; // Base score
+            if (totalMin > 0) {
+                if (totalMin < 120) timeScore = 20; // Super fast
+                else if (totalMin < 300) timeScore = 15; // Fast
             }
+
+            // Innovation - 10 points
+            const innovationScore = state.innovativeIdea ? 10 : 0;
+
+            const totalScore = Math.min(Math.round(volumeScore + revisionScore + timeScore + innovationScore), 100);
+
+            return {
+                score: totalScore,
+                totalWorks: totalWorks,
+                qualityScore: Math.round(revisionScore + timeScore) // Just a sub-metric for display
+            };
         }
 
+        function updateStatsBars(total) {
+            const container = document.getElementById('stats-bars');
+            if(total === 0) {
+                container.innerHTML = '<div class="text-center text-xs text-slate-300 py-4">أدخل بيانات الإنتاج لرؤية التحليل</div>';
+                return;
+            }
+
+            const html = inputsConfig.map(item => {
+                if(item.id === 'rushJobs') return '';
+                const val = parseInt(state[item.id]) || 0;
+                if(val === 0) return '';
+                const pct = Math.round((val / total) * 100);
+                return `
+                    <div class="flex items-center gap-3 text-xs font-bold text-slate-600">
+                        <div class="w-24 shrink-0 flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full ${item.color.replace('text', 'bg')}"></div>
+                            ${item.label}
+                        </div>
+                        <div class="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
+                            <div class="h-full ${item.color.replace('text', 'bg')} opacity-80" style="width: ${pct}%"></div>
+                        </div>
+                        <div class="w-8 text-left">${val}</div>
+                    </div>
+                `;
+            }).join('');
+            container.innerHTML = html;
+        }
+
+        function updateReportPreview(calc) {
+            document.getElementById('report-date').innerText = `${state.month} ${state.year}`;
+            document.getElementById('report-score').innerText = calc.score + '%';
+            document.getElementById('report-ref').innerText = `KPI-${new Date().getFullYear()}-${Math.floor(Math.random()*1000)}`;
+            
+            document.getElementById('report-best-campaign').innerText = state.bestCampaign || "لم يتم تحديد حملة رئيسية";
+            document.getElementById('report-idea').innerText = state.innovativeIdea || "متابعة سير العمل الاعتيادي";
+
+            // Stats List
+            const statsList = document.getElementById('report-stats-list');
+            let statsHtml = '';
+            inputsConfig.forEach(item => {
+                if(state[item.id] > 0) {
+                    statsHtml += `<li class="flex justify-between border-b border-slate-100 pb-1 last:border-0"><span>${item.label}</span> <span class="font-bold">${state[item.id]}</span></li>`;
+                }
+            });
+            statsList.innerHTML = statsHtml || '<li class="text-slate-400 font-normal italic">لا توجد بيانات</li>';
+
+            // Quality List
+            const qList = document.getElementById('report-quality-list');
+            qList.innerHTML = `
+                <li class="flex justify-between border-b border-slate-100 pb-1"><span>متوسط التعديلات</span> <span>${state.avgRevisions || 0}</span></li>
+                <li class="flex justify-between border-b border-slate-100 pb-1"><span>زمن التسليم</span> <span>${state.deliveryHours}س ${state.deliveryMinutes}د</span></li>
+                <li class="flex justify-between"><span>الطلبات العاجلة</span> <span class="text-orange-500">${state.rushJobs || 0}</span></li>
+            `;
+        }
+
+        // --- NAVIGATION & ACTIONS ---
         function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-            document.getElementById('content-' + tabId).classList.remove('hidden');
+            document.querySelectorAll('.tab-content').forEach(c => {
+                c.classList.add('hidden');
+                c.classList.remove('animate-fade-in');
+            });
+            const activeContent = document.getElementById('content-' + tabId);
+            activeContent.classList.remove('hidden');
             
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-active', 'text-slate-500'));
-            document.getElementById('tab-' + tabId).classList.add('tab-active');
+            // Simple fade in effect
+            setTimeout(() => activeContent.classList.add('opacity-100'), 50);
+
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('active', 'bg-slate-900', 'text-white', 'shadow-lg');
+                b.classList.add('text-slate-500');
+            });
             
-            if(tabId !== 'input') updateDashboard();
-        }
+            const btn = document.getElementById('tab-' + tabId);
+            btn.classList.add('active');
+            btn.classList.remove('text-slate-500');
 
-        function generateReportText() {
-            const total = parseInt(state.socialCount || 0) + parseInt(state.printCount || 0) + 
-                          parseInt(state.presentationCount || 0) + parseInt(state.brandingCount || 0) + 
-                          parseInt(state.adCreativeCount || 0);
-            
-            const text = `إلى: د. محمد شتات - المدير التنفيذي لأكاديمية النخبة الدولية للتدريب والتنمية
-
-تحية طيبة،،
-
-نرفع لسيادتكم تقرير الكفاءة الإبداعية لشهر ${state.month} ${state.year}.
-
-[1] مؤشرات الإنتاج الفني (الإجمالي: ${total} عمل فني):
-- الحملات الممولة: ${state.adCreativeCount} | المطبوعات: ${state.printCount}
-- الهوية البصرية: ${state.brandingCount} | التواصل الاجتماعي: ${state.socialCount}
-- العروض التقديمية: ${state.presentationCount}
-
-[2] معايير الجودة والسرعة:
-- متوسط زمن التنفيذ: ${state.deliveryHours} ساعة و ${state.deliveryMinutes} دقيقة.
-- معدل الدقة: ${state.avgRevisions} تعديل.
-
-[3] التطوير الاستراتيجي:
-- المبادرة: ${state.innovativeIdea || "تحسين معايير الإخراج الفني."}
-- الإنجاز الأبرز: تنفيذ تصميمات "${state.bestCampaign || 'البراند العام'}".
-
-الاحترام والتقدير،،
-محمود يسري - قسم الجرافيك ديزاين`;
-            
-            document.getElementById('report-text').innerText = text;
-        }
-
-        function copyReport() {
-            const text = document.getElementById('report-text').innerText;
-            const el = document.createElement('textarea');
-            el.value = text;
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-            alert('تم نسخ التقرير بنجاح!');
+            if (tabId === 'history') renderHistory();
         }
 
         function saveToArchive() {
-            const record = { ...state, score: calculateScore(), date: new Date().toLocaleDateString() };
+            const currentScore = calculateScore().score;
+            const record = { 
+                ...state, 
+                score: currentScore, 
+                timestamp: new Date().toISOString(),
+                formattedDate: new Date().toLocaleDateString('ar-EG')
+            };
             history.unshift(record);
             localStorage.setItem('eliteHistory', JSON.stringify(history));
-            alert('تم الحفظ في الأرشيف!');
-            renderHistory();
+            
+            // Animation feedback
+            const btn = event.currentTarget;
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> تم الحفظ`;
+            btn.classList.replace('bg-brand-600', 'bg-emerald-600');
+            setTimeout(() => {
+                btn.innerHTML = originalHtml;
+                btn.classList.replace('bg-emerald-600', 'bg-brand-600');
+                lucide.createIcons();
+            }, 2000);
         }
 
         function renderHistory() {
@@ -343,26 +651,29 @@
             if (history.length === 0) return;
             
             list.innerHTML = history.map((h, i) => `
-                <div class="flex items-center justify-between p-6 bg-slate-50 rounded-2xl border border-slate-100">
-                    <div class="flex items-center gap-6">
-                        <div class="text-center bg-white p-3 rounded-xl border border-slate-200 min-w-[100px]">
-                            <div class="text-[10px] text-slate-400 font-black">${h.year}</div>
-                            <div class="text-blue-600 font-black text-lg">${h.month}</div>
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center group hover:border-brand-200 transition-colors">
+                    <div class="flex items-center gap-4">
+                        <div class="h-12 w-12 rounded-full flex items-center justify-center font-black text-white ${h.score >= 85 ? 'bg-emerald-500' : (h.score >= 70 ? 'bg-brand-500' : 'bg-orange-400')}">
+                            ${h.score}%
                         </div>
                         <div>
-                            <div class="font-black text-slate-800 text-lg">تقييم الكفاءة: ${h.score}%</div>
-                            <div class="text-xs text-slate-400 font-bold">تاريخ الحفظ: ${h.date}</div>
+                            <div class="font-bold text-slate-800 text-lg">${h.month} ${h.year}</div>
+                            <div class="text-xs text-slate-400 font-medium">تم الحفظ: ${h.formattedDate}</div>
                         </div>
                     </div>
-                    <button onclick="deleteHistory(${i})" class="text-red-300 hover:text-red-500 p-2"><i data-lucide="trash-2"></i></button>
+                    <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                         <button onclick="deleteHistory(${i})" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="حذف">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
                 </div>
             `).join('');
             lucide.createIcons();
         }
-
-        function deleteHistory(i) {
-            if(confirm('حذف هذا السجل؟')) {
-                history.splice(i, 1);
+        
+        function deleteHistory(index) {
+            if(confirm('هل أنت متأكد من حذف هذا السجل؟')) {
+                history.splice(index, 1);
                 localStorage.setItem('eliteHistory', JSON.stringify(history));
                 renderHistory();
             }
