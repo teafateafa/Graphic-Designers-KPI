@@ -1,338 +1,404 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  LineChart, BarChart, TrendingUp, Clock, CheckCircle, 
-  Share2, Copy, FileText, Save, Layout, Award, 
-  AlertTriangle, Archive, Trash2, PieChart, Star, Zap
+  TrendingUp, Clock, CheckCircle, Copy, FileText, Save, 
+  Layout, Award, Archive, Trash2, PieChart, Star, Zap, 
+  Target, Rocket, ShieldCheck, Lightbulb, Calendar, Palette
 } from 'lucide-react';
+
+/**
+ * Mahmoud Yousry | Senior Graphic Designer
+ * Elite Academy Performance Tracker V3.5
+ * Features: Local Storage, Performance Scoring, Automated Report Generation
+ */
 
 const EliteDesignTracker = () => {
   const [activeTab, setActiveTab] = useState('input');
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
 
-  // State for the current month's data
+  // Initial State for the monthly tracker
   const [currentData, setCurrentData] = useState({
     id: Date.now(),
     month: new Date().toLocaleString('ar-EG', { month: 'long' }),
     year: new Date().getFullYear(),
-    
-    // Detailed Breakdown
     socialCount: 0,
     printCount: 0,
     presentationCount: 0,
     brandingCount: 0,
-    adCreativeCount: 0, // إعلانات ممولة
-    
-    // Time metrics
+    adCreativeCount: 0,
     deliveryHours: 0,
     deliveryMinutes: 0,
-    
-    // Efficiency
     rushJobs: 0,
     avgRevisions: 0,
-    
-    // Professional Impact
     bestCampaign: '',
-    innovativeIdea: '', // فكرة مبتكرة قدمتها
-    brandEnhancement: '', // كيف طورت في شكل البراند
+    innovativeIdea: '',
+    brandEnhancement: '',
     skillsLearned: '',
   });
 
+  // Load history from local storage on mount
   const [history, setHistory] = useState(() => {
     const saved = localStorage.getItem('eliteDesignHistoryPro');
     return saved ? JSON.parse(saved) : [];
   });
 
+  // Sync history to local storage whenever it changes
   useEffect(() => {
     localStorage.setItem('eliteDesignHistoryPro', JSON.stringify(history));
   }, [history]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setCurrentData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setCurrentData(prev => ({ ...prev, [name]: value }));
   };
 
-  const totalDesigns = parseInt(currentData.socialCount) + parseInt(currentData.printCount) + 
-                       parseInt(currentData.presentationCount) + parseInt(currentData.brandingCount) + 
-                       parseInt(currentData.adCreativeCount);
+  const totalDesigns = parseInt(currentData.socialCount || 0) + parseInt(currentData.printCount || 0) + 
+                       parseInt(currentData.presentationCount || 0) + parseInt(currentData.brandingCount || 0) + 
+                       parseInt(currentData.adCreativeCount || 0);
 
+  // Algorithm to calculate performance score (0-100)
   const calculateScore = (data) => {
     let score = 0;
-    const totalImpact = (parseInt(data.socialCount) * 1) + (parseInt(data.printCount) * 3) + 
-                        (parseInt(data.brandingCount) * 8) + (parseInt(data.adCreativeCount) * 4);
+    const totalImpact = (parseInt(data.socialCount || 0) * 1) + (parseInt(data.printCount || 0) * 3) + 
+                        (parseInt(data.brandingCount || 0) * 8) + (parseInt(data.adCreativeCount || 0) * 4);
     score += Math.min(totalImpact, 45); 
     
-    const revPenalty = parseInt(data.avgRevisions) * 8;
+    const revPenalty = parseInt(data.avgRevisions || 0) * 8;
     score += Math.max(0, 25 - revPenalty);
 
-    const timeInMinutes = (parseInt(data.deliveryHours) * 60) + parseInt(data.deliveryMinutes);
-    const speedScore = timeInMinutes < 180 ? 20 : (timeInMinutes < 1440 ? 15 : 10);
-    score += speedScore;
+    const timeInMinutes = (parseInt(data.deliveryHours || 0) * 60) + parseInt(data.deliveryMinutes || 0);
+    if (timeInMinutes === 0) {
+      score += 10; 
+    } else {
+      const speedScore = timeInMinutes < 180 ? 20 : (timeInMinutes < 1440 ? 15 : 10);
+      score += speedScore;
+    }
 
     if (data.innovativeIdea) score += 10;
+    
     return Math.min(Math.round(score), 100);
   };
 
   const performanceScore = calculateScore(currentData);
 
+  // Dynamic Badge System based on KPIs
+  const getBadge = () => {
+    if (parseInt(currentData.rushJobs) > 5) return { label: 'منقذ الأزمات', color: 'bg-orange-500', icon: ShieldCheck };
+    if (parseInt(currentData.avgRevisions) === 0 && totalDesigns > 5) return { label: 'القناص (0 تعديلات)', color: 'bg-purple-600', icon: Target };
+    if (performanceScore >= 90) return { label: 'خبير النخبة', color: 'bg-yellow-500 text-black', icon: Award };
+    if (performanceScore >= 75) return { label: 'مصمم محترف', color: 'bg-blue-600', icon: Zap };
+    return { label: 'بداية قوية', color: 'bg-slate-500', icon: TrendingUp };
+  };
+
+  const badge = getBadge();
+
   const saveReport = () => {
-    const newEntry = {
-      ...currentData,
-      score: performanceScore,
-      totalDesigns: totalDesigns,
-      dateSaved: new Date().toISOString()
-    };
+    const newEntry = { ...currentData, score: performanceScore, totalDesigns, dateSaved: new Date().toISOString() };
     const existingIndex = history.findIndex(h => h.month === currentData.month && h.year === currentData.year);
-    if (existingIndex >= 0) {
-      const updatedHistory = [...history];
-      updatedHistory[existingIndex] = newEntry;
-      setHistory(updatedHistory);
-    } else {
-      setHistory([...history, newEntry]);
-    }
+    const updatedHistory = existingIndex >= 0 ? [...history] : [...history, newEntry];
+    if (existingIndex >= 0) updatedHistory[existingIndex] = newEntry;
+    setHistory(updatedHistory);
     setShowSaveSuccess(true);
     setTimeout(() => setShowSaveSuccess(false), 3000);
   };
 
   const generateEmailText = () => {
     const timeStr = `${currentData.deliveryHours} ساعة و ${currentData.deliveryMinutes} دقيقة`;
-    return `عناية الدكتور/ محمد شتات - المدير التنفيذي لأكاديمية النخبة الدولية للتدريب والتنمية
+    
+    const rushJobText = parseInt(currentData.rushJobs) > 0 
+      ? `- حالات الطوارئ: تم إنجاز ${currentData.rushJobs} طلبات عاجلة بنجاح دون التأثير على الجدول الزمني.`
+      : `- استقرار العمل: تم تسليم كافة الأعمال وفق الجدول الزمني المخطط له بدقة تامة.`;
 
-تحية طيبة وبعد،،
+    const campaignText = currentData.bestCampaign 
+      ? `- الإنجاز الأبرز: تنفيذ التصميمات الخاصة بـ "${currentData.bestCampaign}".` 
+      : `- الإنجاز الأبرز: الحفاظ على نسق بصري موحد لجميع منشورات الأكاديمية.`;
 
-أتشرف بأن أضع بين أيديكم تقرير الإنجاز البصري والتطوير الفني الخاص بالقسم لشهر ${currentData.month} ${currentData.year}. يوضح هذا التقرير القيمة المضافة لعملية التصميم في تعزيز مكانة الأكاديمية كصرح تدريبي دولي.
+    return `إلى: د. محمد شتات - المدير التنفيذي لأكاديمية النخبة الدولية للتدريب والتنمية
 
-أولاً: مؤشرات الإنتاجية والكم (إجمالي مخرجات: ${totalDesigns} عمل فني)
-تم إنجاز وتطوير الملفات التالية وفق أعلى معايير الجودة:
-- التصميمات الإعلانية والتسويقية (Social Media): ${currentData.socialCount} تصميم.
-- الحملات الإعلانية الموجهة (Paid Ads Creatives): ${currentData.adCreativeCount} تصميم.
-- المطبوعات والحقائب التدريبية: ${currentData.printCount} عمل مطبوع.
-- تطوير الهوية البصرية والشعارات: ${currentData.brandingCount} عنصر.
-- العروض التقديمية والملفات التعليمية: ${currentData.presentationCount} ملف احترافي.
+تحية طيبة،،
 
-ثانياً: الكفاءة التشغيلية والسرعة (Agility & Precision)
-- زمن الاستجابة والتنفيذ: تم تحقيق متوسط زمن تسليم قدره (${timeStr})، مع الحفاظ على دقة التنفيذ من المرة الأولى بمعدل تعديلات لا يتخطى (${currentData.avgRevisions}) لكل تصميم.
-- مهام الطوارئ: التعامل مع (${currentData.rushJobs}) طلب عاجل تم تنفيذها في وقت قياسي لضمان استمرارية العمل دون انقطاع.
+نرفع لسيادتكم تقرير الكفاءة الإبداعية لشهر ${currentData.month} ${currentData.year}.
 
-ثالثاً: التميز والقيمة المضافة (Strategic Impact)
-- أبرز إنجاز: النجاح في تنفيذ التصميمات الخاصة بـ "${currentData.bestCampaign}".
-- المبادرة والابتكار: ${currentData.innovativeIdea || "العمل على توحيد النمط البصري لجميع إصدارات الأكاديمية لزيادة الموثوقية."}
-- تطوير الهوية: ${currentData.brandEnhancement || "استخدام تقنيات بصرية حديثة تبرز هوية الأكاديمية الدولية."}
+[1] مؤشرات الإنتاج الفني (الإجمالي: ${totalDesigns} عمل فني):
+- الحملات الممولة: ${currentData.adCreativeCount} | المطبوعات: ${currentData.printCount}
+- الهوية البصرية: ${currentData.brandingCount} | التواصل الاجتماعي: ${currentData.socialCount}
+- العروض التقديمية: ${currentData.presentationCount}
 
-إن ما تم تحقيقه يعكس حرصي الدائم على أن يظهر كل عمل يحمل اسم "أكاديمية النخبة الدولية" بشكل احترافي عالمي، مساهماً بذلك في جذب شريحة أكبر من المتدربين وتعزيز الصورة الذهنية للمؤسسة.
+[2] معايير الجودة والسرعة:
+- متوسط زمن التنفيذ: ${timeStr}
+- معدل الدقة: ${currentData.avgRevisions} تعديل (مؤشر كفاءة تشغيلية).
+${rushJobText}
 
-تفضلوا بقبول فائق الاحترام والتقدير،،
-[اسمك هنا]
-قسم الجرافيك ديزاين`;
+[3] التطوير الاستراتيجي:
+- المبادرة: ${currentData.innovativeIdea || "العمل على تحسين معايير الإخراج الفني للبراند."}
+${campaignText}
+
+نعمل دائماً لتعزيز القوة البصرية لأكاديمية النخبة دولياً.
+
+الاحترام والتقدير،،
+محمود يسري - قسم الجرافيك ديزاين`;
   };
 
+  const months = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+  const years = [2024, 2025, 2026];
+
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-800 font-sans" dir="rtl">
-      {/* Header */}
-      <header className="bg-[#1e293b] text-white p-6 shadow-xl border-b-4 border-blue-500">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="text-right">
-            <h1 className="text-2xl font-bold flex items-center gap-3">
-              <Star className="text-yellow-400 fill-yellow-400 w-7 h-7" />
-              منصة تتبع أداء النخبة
-            </h1>
-            <p className="text-slate-400 text-sm mt-1">أكاديمية النخبة الدولية للتدريب والتنمية</p>
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-blue-100" dir="rtl">
+      {/* Personalized Professional Header */}
+      <header className="bg-white border-b border-slate-200 p-6 sticky top-0 z-50 shadow-sm">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex items-center gap-4">
+            <div className="bg-slate-900 p-3 rounded-2xl shadow-lg shadow-slate-200">
+              <Palette className="text-white w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-xl font-black tracking-tight text-slate-800 flex flex-col sm:flex-row sm:items-baseline gap-2">
+                Mahmoud Yousry 
+                <span className="text-blue-600 font-medium text-sm sm:text-lg tracking-normal">| Senior Graphic Designer</span>
+              </h1>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">أكاديمية النخبة الدولية للتدريب والتنمية</p>
+            </div>
           </div>
-          <div className="flex gap-6">
-            <div className="bg-white/5 p-3 rounded-lg text-center min-w-[100px]">
-              <div className="text-[10px] text-blue-300 uppercase tracking-wider">تقييم الشهر</div>
-              <div className="text-2xl font-black text-blue-400">{performanceScore}%</div>
-            </div>
-            <div className="bg-white/5 p-3 rounded-lg text-center min-w-[100px]">
-              <div className="text-[10px] text-blue-300 uppercase tracking-wider">الحالة</div>
-              <div className="text-sm font-bold mt-1 text-green-400">احترافي متقدم</div>
-            </div>
+
+          <div className="flex items-center gap-4">
+             <div className="flex -space-x-2 space-x-reverse">
+                <div className={`px-4 py-2 rounded-xl border-2 border-white shadow-sm flex items-center gap-2 ${badge.color} text-white text-xs font-bold animate-pulse`}>
+                   <badge.icon size={14} />
+                   {badge.label}
+                </div>
+             </div>
+             <div className="h-10 w-[1px] bg-slate-200 mx-2 hidden md:block"></div>
+             <div className="text-left">
+                <div className="text-[10px] text-slate-400 font-bold uppercase">KPI Score</div>
+                <div className="text-xl font-black text-blue-600">{performanceScore}%</div>
+             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto p-4 md:p-8">
+      <main className="max-w-7xl mx-auto p-4 md:p-8">
         
         {/* Navigation Tabs */}
-        <div className="flex flex-wrap gap-2 mb-8">
-          {[
-            { id: 'input', label: 'إدارة المدخلات', icon: Zap },
-            { id: 'report', label: 'التقرير التنفيذي', icon: FileText },
-            { id: 'history', label: 'سجل التطور السنوي', icon: Archive }
-          ].map(tab => (
-            <button 
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-lg scale-105' : 'bg-white text-slate-600 hover:bg-slate-100'}`}
+        <div className="inline-flex p-1 bg-slate-200/50 rounded-2xl mb-8">
+          {['input', 'report', 'history'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                activeTab === tab ? 'bg-white text-blue-600 shadow-md scale-100' : 'text-slate-500 hover:text-slate-700'
+              }`}
             >
-              <tab.icon className="w-4 h-4" />
-              {tab.label}
+              {tab === 'input' ? 'البيانات' : tab === 'report' ? 'التقرير' : 'الأرشيف'}
             </button>
           ))}
         </div>
 
         {activeTab === 'input' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fadeIn">
-            {/* Column 1: Production Details */}
-            <div className="lg:col-span-2 space-y-6">
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <h3 className="text-lg font-bold mb-6 flex items-center gap-2 text-blue-900">
-                  <PieChart className="w-5 h-5" />
-                  تفاصيل المخرجات الفنية
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <InputField label="سوشيال ميديا" name="socialCount" value={currentData.socialCount} onChange={handleInputChange} />
-                  <InputField label="إعلانات ممولة" name="adCreativeCount" value={currentData.adCreativeCount} onChange={handleInputChange} highlight />
-                  <InputField label="مطبوعات" name="printCount" value={currentData.printCount} onChange={handleInputChange} />
-                  <InputField label="عروض تقديمية" name="presentationCount" value={currentData.presentationCount} onChange={handleInputChange} />
-                  <InputField label="هوية بصرية/شعارات" name="brandingCount" value={currentData.brandingCount} onChange={handleInputChange} />
-                  <InputField label="مهام طوارئ" name="rushJobs" value={currentData.rushJobs} onChange={handleInputChange} color="orange" />
-                </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Input Section */}
+            <div className="lg:col-span-8 space-y-6">
+              
+              {/* Period Selector */}
+              <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-wrap gap-4 items-center">
+                 <div className="flex items-center gap-2 text-slate-500 font-bold text-sm">
+                    <Calendar size={18} />
+                    <span>فترة التقرير:</span>
+                 </div>
+                 <select 
+                   name="month" 
+                   value={currentData.month} 
+                   onChange={handleInputChange}
+                   className="bg-slate-50 border-none rounded-lg p-2 font-bold text-blue-900 focus:ring-2 focus:ring-blue-100 cursor-pointer"
+                 >
+                    {months.map(m => <option key={m} value={m}>{m}</option>)}
+                 </select>
+                 <select 
+                   name="year" 
+                   value={currentData.year} 
+                   onChange={handleInputChange}
+                   className="bg-slate-50 border-none rounded-lg p-2 font-bold text-blue-900 focus:ring-2 focus:ring-blue-100 cursor-pointer"
+                 >
+                    {years.map(y => <option key={y} value={y}>{y}</option>)}
+                 </select>
               </div>
 
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <h3 className="text-lg font-bold mb-6 flex items-center gap-2 text-blue-900">
-                  <Star className="w-5 h-5" />
-                  القيمة الاستراتيجية والابتكار
-                </h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">فكرة مبتكرة أو مبادرة قدمتها (تفرقك عن غيرك)</label>
-                    <textarea 
-                      name="innovativeIdea" 
-                      value={currentData.innovativeIdea} 
-                      onChange={handleInputChange}
-                      placeholder="مثال: اقترحت تغيير نظام الـ Branding في فيديوهات الكورسات لتكون أكثر عصرية.."
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none h-24"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">أبرز حملة تم إنجازها</label>
-                    <input name="bestCampaign" value={currentData.bestCampaign} onChange={handleInputChange} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
-                  </div>
+              <section className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
+                <div className="flex items-center gap-2 mb-8">
+                  <PieChart className="text-blue-600" size={20} />
+                  <h2 className="font-black text-slate-800">حجم الإنتاج الفني</h2>
                 </div>
-              </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <ModernInput label="سوشيال ميديا" name="socialCount" value={currentData.socialCount} onChange={handleInputChange} icon={Layout} />
+                  <ModernInput label="إعلانات ممولة" name="adCreativeCount" value={currentData.adCreativeCount} onChange={handleInputChange} icon={Target} theme="blue" />
+                  <ModernInput label="مطبوعات" name="printCount" value={currentData.printCount} onChange={handleInputChange} icon={FileText} />
+                  <ModernInput label="عروض تقدمية" name="presentationCount" value={currentData.presentationCount} onChange={handleInputChange} icon={Award} />
+                  <ModernInput label="هوية بصرية" name="brandingCount" value={currentData.brandingCount} onChange={handleInputChange} icon={Star} />
+                  <ModernInput label="طلبات عاجلة" name="rushJobs" value={currentData.rushJobs} onChange={handleInputChange} icon={Zap} theme="orange" />
+                </div>
+              </section>
+
+              <section className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
+                <div className="flex items-center gap-2 mb-6">
+                  <Lightbulb className="text-yellow-500" size={20} />
+                  <h2 className="font-black text-slate-800">الابتكار والتطوير الإبداعي</h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase">أبرز حملة تم إنجازها</label>
+                      <input 
+                        type="text"
+                        name="bestCampaign" 
+                        value={currentData.bestCampaign} 
+                        onChange={handleInputChange}
+                        placeholder="مثال: حملة دبلوم الموارد البشرية"
+                        className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-100 focus:bg-white p-4 rounded-2xl outline-none transition-all font-bold text-slate-700"
+                      />
+                   </div>
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase">فكرة إبداعية جديدة</label>
+                      <input 
+                        type="text"
+                        name="innovativeIdea" 
+                        value={currentData.innovativeIdea} 
+                        onChange={handleInputChange}
+                        placeholder="تطوير موشن جرافيك أو نظام ألوان جديد"
+                        className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-100 focus:bg-white p-4 rounded-2xl outline-none transition-all font-bold text-slate-700"
+                      />
+                   </div>
+                </div>
+              </section>
             </div>
 
-            {/* Column 2: Performance Metrics */}
-            <div className="space-y-6">
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <h3 className="text-lg font-bold mb-6 flex items-center gap-2 text-orange-600">
-                  <Clock className="w-5 h-5" />
-                  مؤشرات السرعة والدقة
-                </h3>
+            {/* Side Analytics */}
+            <div className="lg:col-span-4 space-y-6">
+              <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
+                <h3 className="font-black mb-6 flex items-center gap-2"><Clock size={18}/> الكفاءة الزمنية والدقة</h3>
                 <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">متوسط زمن التسليم</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="relative">
-                        <input type="number" name="deliveryHours" value={currentData.deliveryHours} onChange={handleInputChange} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl pr-10" />
-                        <span className="absolute right-3 top-3 text-xs text-slate-400">ساعة</span>
+                   <div className="flex gap-4">
+                      <div className="flex-1">
+                        <label className="text-[10px] font-bold text-slate-400 block mb-2 uppercase">ساعات</label>
+                        <input type="number" min="0" name="deliveryHours" value={currentData.deliveryHours} onChange={handleInputChange} className="w-full bg-slate-50 p-3 rounded-xl font-bold outline-none border-2 border-transparent focus:border-blue-200" />
                       </div>
-                      <div className="relative">
-                        <input type="number" name="deliveryMinutes" value={currentData.deliveryMinutes} onChange={handleInputChange} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl pr-10" />
-                        <span className="absolute right-3 top-3 text-xs text-slate-400">دقيقة</span>
+                      <div className="flex-1">
+                        <label className="text-[10px] font-bold text-slate-400 block mb-2 uppercase">دقائق</label>
+                        <input type="number" min="0" max="59" name="deliveryMinutes" value={currentData.deliveryMinutes} onChange={handleInputChange} className="w-full bg-slate-50 p-3 rounded-xl font-bold outline-none border-2 border-transparent focus:border-blue-200" />
                       </div>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">متوسط عدد التعديلات/تصميم</label>
-                    <input type="number" name="avgRevisions" value={currentData.avgRevisions} onChange={handleInputChange} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl" />
-                  </div>
+                   </div>
+                   <div>
+                      <label className="text-[10px] font-bold text-slate-400 block mb-2 uppercase">معدل التعديلات (Revisions)</label>
+                      <input type="number" min="0" name="avgRevisions" value={currentData.avgRevisions} onChange={handleInputChange} className="w-full bg-slate-50 p-3 rounded-xl font-bold outline-none border-2 border-transparent focus:border-blue-200" />
+                      <p className="text-[10px] text-slate-400 mt-2">يعبر عن الدقة في فهم متطلبات الإدارة.</p>
+                   </div>
                 </div>
               </div>
 
-              <div className="bg-blue-900 text-white p-6 rounded-2xl shadow-xl">
-                <h4 className="font-bold mb-2">لماذا هذا النظام؟</h4>
-                <p className="text-blue-200 text-xs leading-relaxed">
-                  هذا النظام يحول مجهودك الفني إلى لغة أرقام يفهمها دكتور محمد شتات، مما يسهل عملية اتخاذ قرار بزيادة الراتب بناءً على حقائق مثبتة.
-                </p>
+              <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-8 text-white shadow-xl shadow-slate-200 relative overflow-hidden group">
+                 <Zap className="absolute -right-4 -bottom-4 w-32 h-32 text-white/10 rotate-12 group-hover:rotate-0 transition-transform duration-700" />
+                 <h4 className="font-black text-lg mb-2 relative z-10">نظام تقييم النخبة</h4>
+                 <p className="text-slate-300 text-xs leading-relaxed relative z-10 font-medium">
+                   هذا النظام يحلل التوازن بين الكم والكيف. حصولك على تقييم عالٍ يعني أنك تساهم مباشرة في الهوية البصرية والقوة التسويقية للأكاديمية.
+                 </p>
               </div>
             </div>
           </div>
         )}
 
         {activeTab === 'report' && (
-          <div className="max-w-4xl mx-auto animate-fadeIn">
-            <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
-              <div className="bg-[#1e293b] text-white p-6 flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center font-bold">EN</div>
+          <div className="max-w-4xl mx-auto animate-in zoom-in-95 duration-300">
+            <div className="bg-white rounded-[2rem] shadow-2xl border border-slate-200 overflow-hidden shadow-blue-900/5">
+              <div className="bg-slate-900 p-8 text-white flex justify-between items-center">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center font-black text-xl">M</div>
                   <div>
-                    <h3 className="font-bold">التقرير التنفيذي الموجه</h3>
-                    <p className="text-[10px] text-slate-400">أكاديمية النخبة الدولية - د. محمد شتات</p>
+                     <h3 className="font-black">تقرير الأداء التنفيذي</h3>
+                     <p className="text-xs text-slate-400">إعداد: محمود يسري</p>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <button onClick={saveReport} className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"><Save size={18} /></button>
-                  <button onClick={() => {navigator.clipboard.writeText(generateEmailText()); alert('تم النسخ!')}} className="p-2 bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors"><Copy size={18} /></button>
+                <div className="flex gap-3">
+                   <button onClick={saveReport} className="bg-white/10 hover:bg-white/20 p-3 rounded-xl transition-all" title="حفظ للأرشيف"><Save size={20}/></button>
+                   <button onClick={() => {navigator.clipboard.writeText(generateEmailText()); alert('تم نسخ التقرير بنجاح!');}} className="bg-blue-600 hover:bg-blue-500 p-3 rounded-xl transition-all" title="نسخ النص"><Copy size={20}/></button>
                 </div>
               </div>
-              <div className="p-10 bg-white text-slate-800 leading-[2] whitespace-pre-line font-medium text-right border-r-8 border-blue-600">
+              <div className="p-12 text-slate-700 leading-[2.2] text-lg font-medium whitespace-pre-line border-r-[12px] border-blue-600 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:20px_20px]">
                 {generateEmailText()}
               </div>
             </div>
-            {showSaveSuccess && <p className="text-center mt-4 text-green-600 font-bold">تم حفظ التقرير في الأرشيف بنجاح</p>}
+            {showSaveSuccess && (
+               <div className="mt-4 text-center text-green-600 font-bold animate-bounce">
+                  تم حفظ التقرير في الأرشيف بنجاح!
+               </div>
+            )}
           </div>
         )}
 
         {activeTab === 'history' && (
-          <div className="animate-fadeIn">
-            <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
-              <h3 className="text-xl font-bold mb-8 flex items-center gap-2">
-                <Archive className="text-blue-600" />
-                تتبع مسار الأداء السنوي
-              </h3>
-              {history.length === 0 ? (
-                <div className="text-center py-20 text-slate-300">لا توجد بيانات محفوظة للشهور السابقة.</div>
-              ) : (
-                <div className="space-y-4">
-                  {history.map((record, i) => (
-                    <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl hover:bg-slate-100 transition-colors">
-                      <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 bg-white rounded-xl shadow-sm flex flex-col items-center justify-center border border-slate-200">
-                          <span className="text-xs text-slate-400">{record.year}</span>
-                          <span className="font-bold text-blue-900">{record.month}</span>
-                        </div>
-                        <div>
-                          <div className="font-bold text-slate-700">{record.totalDesigns} تصميم</div>
-                          <div className="text-xs text-slate-400">أداء: {record.score}%</div>
-                        </div>
+          <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
+            <div className="flex items-center gap-2 mb-8">
+               <Archive className="text-blue-600" />
+               <h3 className="font-black text-xl text-slate-800">الأرشيف السنوي للإنجازات</h3>
+            </div>
+            {history.length === 0 ? (
+              <div className="py-20 text-center text-slate-300 font-bold">لا توجد سجلات محفوظة حالياً.</div>
+            ) : (
+              <div className="space-y-4">
+                {history.map((record, i) => (
+                  <div key={i} className="flex items-center justify-between p-6 bg-slate-50 rounded-2xl border border-slate-100 hover:border-blue-200 transition-all group">
+                    <div className="flex items-center gap-6">
+                      <div className="text-center bg-white p-3 rounded-xl border border-slate-200 min-w-[100px]">
+                        <div className="text-[10px] text-slate-400 font-black">{record.year}</div>
+                        <div className="text-blue-600 font-black text-lg">{record.month}</div>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <div className={`h-2 w-32 bg-slate-200 rounded-full overflow-hidden`}>
-                          <div className="h-full bg-blue-600" style={{width: `${record.score}%`}}></div>
+                      <div>
+                        <div className="font-black text-slate-800 text-lg">{record.totalDesigns} عمل فني</div>
+                        <div className="flex items-center gap-2 mt-1">
+                           <div className="h-2 w-32 bg-slate-200 rounded-full overflow-hidden">
+                              <div className="h-full bg-blue-500" style={{width: `${record.score}%`}}></div>
+                           </div>
+                           <span className="text-xs font-bold text-slate-500">تقييم الكفاءة: {record.score}%</span>
                         </div>
-                        <button onClick={() => {
-                          const updated = history.filter((_, idx) => idx !== i);
-                          setHistory(updated);
-                        }} className="text-red-300 hover:text-red-600 p-2"><Trash2 size={16}/></button>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                    <button 
+                      onClick={() => {
+                        if(window.confirm('هل أنت متأكد من حذف هذا السجل؟')) {
+                           setHistory(history.filter((_, idx) => idx !== i));
+                        }
+                      }}
+                      className="opacity-0 group-hover:opacity-100 text-red-300 hover:text-red-500 p-2 transition-all"
+                    >
+                      <Trash2 size={20} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </main>
+      
+      <footer className="max-w-7xl mx-auto p-8 text-center text-slate-400 text-xs font-bold uppercase tracking-widest">
+        © {new Date().getFullYear()} Mahmoud Yousry Design Portfolio Management System
+      </footer>
     </div>
   );
 };
 
-// Sub-component for inputs
-const InputField = ({ label, name, value, onChange, highlight, color = "blue" }) => (
-  <div className={`p-4 rounded-xl ${highlight ? 'bg-blue-50 border border-blue-200' : 'bg-slate-50 border border-slate-100'}`}>
-    <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">{label}</label>
-    <input 
-      type="number" 
-      name={name} 
-      value={value} 
-      onChange={onChange}
-      className="w-full bg-transparent text-xl font-bold outline-none focus:text-blue-600 transition-colors"
-    />
+/**
+ * Reusable Modern Input Component
+ */
+const ModernInput = ({ label, name, value, onChange, icon: Icon, theme = "slate", min="0" }) => (
+  <div className="group">
+    <label className="text-[10px] font-black text-slate-400 mb-2 block uppercase tracking-tighter">{label}</label>
+    <div className={`flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border-2 border-transparent transition-all focus-within:bg-white shadow-sm focus-within:shadow-md ${theme === 'orange' ? 'focus-within:border-orange-100' : 'focus-within:border-blue-100'}`}>
+      <Icon size={18} className={theme === 'orange' ? 'text-orange-400' : theme === 'blue' ? 'text-blue-500' : 'text-slate-400'} />
+      <input 
+        type="number"
+        min={min}
+        name={name} 
+        value={value} 
+        onChange={onChange}
+        className="bg-transparent w-full outline-none font-black text-slate-700 text-lg"
+      />
+    </div>
   </div>
 );
 
